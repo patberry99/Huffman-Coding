@@ -2,13 +2,11 @@
 #include <unordered_map>
 #include <fstream>
 #include <queue>
+#include <string>
 
 using namespace std;
 
-//Function Declarations (defined below Main)
-int ReadInputFile(unordered_map<char,int> &Global);
-int PerfromConversion();
-int BuildHuffmanTree();
+
 
 struct HuffmanNode{
 int count;
@@ -28,11 +26,19 @@ struct CompareFunction {
     }
 };
 
+//Function Declarations (defined below Main)
+int ReadInputFile(unordered_map<char,int> &Global);
+int PerfromConversion();
+int BuildHuffmanTree();
+int TraverseHuffmanTree(HuffmanNode * root, string bits, int place);
+bool LeafNode(HuffmanNode * Node);
+
 //Global Variables
 string filename;
 unordered_map<char,int> GlobalDictionary;
 priority_queue< HuffmanNode*, vector<HuffmanNode*>, CompareFunction> GlobalQueue;
 HuffmanNode *root;
+unordered_map<char,string> EncodingHolder;
 
 int main (int argc, char * argv[]){
     if(argc <2){
@@ -44,11 +50,13 @@ int main (int argc, char * argv[]){
     //may need to change method of finding file size
     inputFile.seekg (0, inputFile.end);
     int length = inputFile.tellg();
-    cout << length <<endl;
+   // cout << length <<endl;
     inputFile.seekg (0, inputFile.beg);
     ReadInputFile(GlobalDictionary);
     PerfromConversion();
     BuildHuffmanTree();
+    string temp;
+    TraverseHuffmanTree(root,temp,0);
 }
 
 int ReadInputFile(unordered_map<char,int> &Global){
@@ -89,11 +97,46 @@ HuffmanNode *temp3 = new HuffmanNode('$', temp1->count+temp2->count, temp1, temp
 GlobalQueue.push(temp3);
 }
     root = GlobalQueue.top();
-    HuffmanNode *T = root;
-    for (int i=0; i < 10;i++){
+   /* HuffmanNode *T = root;
+ 
         cout << T->character <<endl;
-        T = T->left;
+        T = T->right;
+        cout << T->character <<endl; 
+         T = T->right;
+        cout << T->character <<endl;
+     
+     
+    if(LeafNode(T)){
+        cout <<"HIT" <<endl;
+    }*/
+    
+}
+
+int TraverseHuffmanTree(HuffmanNode * root, string bits, int place){
+   // cout << root->character <<endl;
+   if (root->left) {
+         bits.insert(place,"0");
+        TraverseHuffmanTree(root->left, bits, place+1);
     }
-    
-    
+  
+    if (root->right) {
+        bits.insert(place,"1");
+        TraverseHuffmanTree(root->right, bits, place+1);
+    }
+  
+   if (LeafNode(root)) {
+       cout << root->character <<endl;
+       for(int i =0; i < place; i++){
+           cout << bits[i];
+       }
+       cout <<endl;
+    }
+}
+
+bool LeafNode(HuffmanNode * Node){
+   if((Node->right == NULL) && (Node->left == NULL) ){
+        return true;
+    }
+    return false;
+
 }
