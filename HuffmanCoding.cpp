@@ -57,6 +57,12 @@ int main (int argc, char * argv[]){
     BuildHuffmanTree();
     string temp;
     TraverseHuffmanTree(root,temp,0);
+//print outs 
+ for ( auto itr = EncodingHolder.begin(); itr != EncodingHolder.end(); itr++){
+  cout << itr ->first << " " <<  itr->second <<endl;
+  }
+
+
 }
 
 int ReadInputFile(unordered_map<char,int> &Global){
@@ -74,7 +80,7 @@ char c;
 int PerfromConversion(){
   auto itr = GlobalDictionary.begin();
   for (int i=0; i < GlobalDictionary.size(); i++){
- // cout << itr ->first << " " <<  itr->second <<endl;
+  //cout << itr ->first << " " <<  itr->second <<endl;
   HuffmanNode *temp = new HuffmanNode(itr->first, itr->second);
   GlobalQueue.push(temp);
   itr++;
@@ -125,11 +131,16 @@ int TraverseHuffmanTree(HuffmanNode * root, string bits, int place){
     }
   
    if (LeafNode(root)) {
-       cout << root->character <<endl;
+     //  cout << root->character <<endl;
+       string temp;
        for(int i =0; i < place; i++){
-           cout << bits[i];
+           temp.push_back(bits[i]);
+          // cout << bits[i];
        }
-       cout <<endl;
+      // cout << temp;
+        EncodingHolder[root->character] = temp;
+       temp.clear();
+      
     }
 }
 
@@ -140,3 +151,4 @@ bool LeafNode(HuffmanNode * Node){
     return false;
 
 }
+
