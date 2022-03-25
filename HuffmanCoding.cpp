@@ -3,10 +3,13 @@
 #include <fstream>
 #include <queue>
 #include <string>
+#include<sys/time.h>
 
 using namespace std;
 
+struct timeval t1, t2, t3, t4, t5;
 
+typedef unsigned long long ticks;
 
 struct HuffmanNode{
 int count;
@@ -32,6 +35,7 @@ int PerfromConversion();
 int BuildHuffmanTree();
 int TraverseHuffmanTree(HuffmanNode * root, string bits, int place);
 bool LeafNode(HuffmanNode * Node);
+void EncodeFile();
 
 //Global Variables
 string filename;
@@ -45,23 +49,43 @@ int main (int argc, char * argv[]){
         cout << "Usage: HuffmanCoding.x InputFile.txt" <<endl;
         exit(0);
     }
+    gettimeofday(&t1, NULL);
     filename = argv[1];
     fstream inputFile(filename);
     //may need to change method of finding file size
     inputFile.seekg (0, inputFile.end);
     int length = inputFile.tellg();
-   // cout << length <<endl;
+    cout << "Number of Bytes in Input File: " << length <<endl;
     inputFile.seekg (0, inputFile.beg);
     ReadInputFile(GlobalDictionary);
+    gettimeofday(&t3, NULL);
     PerfromConversion();
     BuildHuffmanTree();
     string temp;
     TraverseHuffmanTree(root,temp,0);
 //print outs 
- for ( auto itr = EncodingHolder.begin(); itr != EncodingHolder.end(); itr++){
-  cout << itr ->first << " " <<  itr->second <<endl;
-  }
-
+// for ( auto itr = EncodingHolder.begin(); itr != EncodingHolder.end(); itr++){
+ // cout << itr ->first << " " <<  itr->second <<endl;
+  //}
+    gettimeofday(&t4, NULL);
+    EncodeFile();
+    gettimeofday(&t2, NULL);
+            cout << "Total Time: " <<endl;
+            printf("%d milliseconds\n",
+	       (t2.tv_sec - t1.tv_sec)*1000 + 
+	       (t2.tv_usec - t1.tv_usec) / 1000);
+           cout << "Time to Read Input File and populate HashTable: " <<endl;
+           printf("%d milliseconds\n",
+	       (t3.tv_sec - t1.tv_sec)*1000 + 
+	       (t3.tv_usec - t1.tv_usec) / 1000);
+           cout << "Time to Encode file: " <<endl;
+           printf("%d milliseconds\n",
+	       (t2.tv_sec - t4.tv_sec)*1000 + 
+	       (t2.tv_usec - t4.tv_usec) / 1000);
+             cout << "Time to perform Huffman Algorithm: " <<endl;
+            printf("%d milliseconds\n",
+	       (t4.tv_sec - t3.tv_sec)*1000 + 
+	       (t4.tv_usec - t3.tv_usec) / 1000);
 
 }
 
@@ -149,6 +173,17 @@ bool LeafNode(HuffmanNode * Node){
         return true;
     }
     return false;
-
 }
 
+
+void EncodeFile(){
+    fstream inputFile(filename);
+    ofstream OutputFile("Encoding.txt");
+    char c;
+    while(inputFile.get(c)){
+        string hold = EncodingHolder[c];
+        OutputFile << hold;
+    }
+    OutputFile.close();
+    
+}
