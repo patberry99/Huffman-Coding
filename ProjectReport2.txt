@@ -1,0 +1,26 @@
+Update for our Project Report 2 due on Friday, April 7th: 
+
+Our team has been able to completely create the Huffman Coding algorithm from scratch. We fully tested our code and 
+the algorithm is both working and efficient. While we looked to online resources on how the algorithm is supposed to work,
+all of the implementation is of our own. 
+The code performs the following:
+1) Read from input file and populate a hash table of character and count pairs 
+2) Convert each hash table entry into a HuffmanNode and populate these values into a priority queue 
+3) Build a HuffmanTree by extracting HuffmanNodes from Global queue 
+4) Traverse through the HuffmanTree to find a character's corresponding bit sequence replacement. 
+5) Populate a hashtable for storage. This structure will be used for the encoding. 
+
+We were not naive in our choice of data structures, as we wanted to ensure optimal
+performance in our sequential version of the code.
+
+Additionally, we completed: 
+1) Fully encode the file with the populated hash table 
+2) Test our sequential code with different file sizes, observing the runtimes 
+3) Observe what parts of the code are taking the most significant time and strategize how to parallelize
+4) Make significant progress in using OpenMP for multithreading
+
+What we have left to complete: 
+1) Complete the OpenMP parallelization for encoding and dictionary population 
+2) use Vector Intrinsics where we can, on top of the OpenMP 
+
+We will work on these as we complete the MPI project. 
