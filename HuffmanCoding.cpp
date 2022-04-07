@@ -4,6 +4,11 @@
 #include <queue>
 #include <string>
 #include<sys/time.h>
+#include <sstream>
+#include "omp.h"
+#include <vector>
+
+#define NoThreads 18
 
 using namespace std;
 
@@ -43,12 +48,15 @@ unordered_map<char,int> GlobalDictionary;
 priority_queue< HuffmanNode*, vector<HuffmanNode*>, CompareFunction> GlobalQueue;
 HuffmanNode *root;
 unordered_map<char,string> EncodingHolder;
+vector <string> VectorHolder[NoThreads];
+int NumberofFileBytes;
 
 int main (int argc, char * argv[]){
-    if(argc <2){
-        cout << "Usage: HuffmanCoding.x InputFile.txt" <<endl;
+    if(argc <3){
+        cout << "Usage: HuffmanCoding.x InputFile.txt " <<endl;
         exit(0);
     }
+
     gettimeofday(&t1, NULL);
     filename = argv[1];
     fstream inputFile(filename);
@@ -56,6 +64,7 @@ int main (int argc, char * argv[]){
     inputFile.seekg (0, inputFile.end);
     int length = inputFile.tellg();
     cout << "Number of Bytes in Input File: " << length <<endl;
+    NumberofFileBytes = length;
     inputFile.seekg (0, inputFile.beg);
     ReadInputFile(GlobalDictionary);
     gettimeofday(&t3, NULL);
@@ -179,11 +188,19 @@ bool LeafNode(HuffmanNode * Node){
 void EncodeFile(){
     fstream inputFile(filename);
     ofstream OutputFile("Encoding.txt");
-    char c;
-    while(inputFile.get(c)){
-        string hold = EncodingHolder[c];
-        OutputFile << hold;
-    }
+    int BytesPerThread = NumberofFileBytes / NoThreads;
+            #pragma omp parallel num_threads(NoThreads)
+        {
+                char c;
+                int myid = omp_get_thread_num();
+                int positioninFile = BytesPerThread * myid;
+                inputFile.seekg(positioninFile, inputFile.beg);
+                 while(inputFile.get(c)){
+                    string hold = EncodingHolder[c];
+                     OutputFile << hold; //add to the vector instead 
+                     }
+        }
+
     OutputFile.close();
     
 }
