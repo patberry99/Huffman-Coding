@@ -8,7 +8,7 @@
 #include "omp.h"
 #include <vector>
 
-#define NoThreads 18
+#define NoThreads 16
 
 using namespace std;
 
@@ -50,9 +50,10 @@ HuffmanNode *root;
 unordered_map<char,string> EncodingHolder;
 vector <string> VectorHolder[NoThreads];
 int NumberofFileBytes;
+vector<char> inputfilevec;
 
 int main (int argc, char * argv[]){
-    if(argc <3){
+    if(argc <2){
         cout << "Usage: HuffmanCoding.x InputFile.txt " <<endl;
         exit(0);
     }
@@ -100,13 +101,37 @@ int main (int argc, char * argv[]){
 
 int ReadInputFile(unordered_map<char,int> &Global){
 string temp;
-unordered_map<char,int> LocalDictionary;
+//unordered_map<char,int> LocalDictionary;
 fstream inputFile(filename);
+int BytesPerThread = NumberofFileBytes / NoThreads;
+int SpecialBytesPerThread = (NumberofFileBytes / NoThreads) + (NumberofFileBytes % NoThreads);
 char c;
     while(inputFile.get(c)){
-        LocalDictionary[c]++;
+        inputfilevec.push_back(c);
+       // LocalDictionary[c]++;
     }
-    Global = LocalDictionary;
+   // Global = LocalDictionary;
+     #pragma omp parallel num_threads(NoThreads)
+     {
+         unordered_map<char,int> LocalDictionary;
+         int myid = omp_get_thread_num();
+         int positioninFile = BytesPerThread * myid;
+         if(myid == NoThreads-1){
+               for (int i =positioninFile; i < positioninFile + SpecialBytesPerThread; i++){
+             char a = inputfilevec[i];
+            // cout << "HIT" <<endl;
+             LocalDictionary[a]++;
+             }
+         }
+         else{
+         for (int i =positioninFile; i < positioninFile + BytesPerThread; i++){
+             char a = inputfilevec[i];
+            // cout << "HIT" <<endl;
+             LocalDictionary[a]++;
+         }
+         }
+         Global.insert(LocalDictionary.begin(), LocalDictionary.end());
+     }
 }
 
 //Newline character and spaces are read in differently
@@ -188,17 +213,43 @@ bool LeafNode(HuffmanNode * Node){
 void EncodeFile(){
     fstream inputFile(filename);
     ofstream OutputFile("Encoding.txt");
+   // cout << "NO OF FILE BYTES " << NumberofFileBytes <<endl;
     int BytesPerThread = NumberofFileBytes / NoThreads;
+    int SpecialBytesPerThread = (NumberofFileBytes / NoThreads) + (NumberofFileBytes % NoThreads);
+   // cout << "Bytes per thread " << BytesPerThread <<endl;
             #pragma omp parallel num_threads(NoThreads)
         {
                 char c;
                 int myid = omp_get_thread_num();
                 int positioninFile = BytesPerThread * myid;
-                inputFile.seekg(positioninFile, inputFile.beg);
-                 while(inputFile.get(c)){
+                 if(myid == NoThreads-1){
+                     for (int i =positioninFile; i < positioninFile + SpecialBytesPerThread; i++){
+                     char c = inputfilevec[i];
+                     string hold = EncodingHolder[c];
+                     VectorHolder[myid].push_back(hold);
+                        }
+                 }
+               // cout << positioninFile <<endl << myid <<endl << BytesPerThread <<endl;
+              //  inputFile.seekg(positioninFile, inputFile.beg);
+               //  while(inputFile.get(c)){
+                   else{
+                    for (int i = positioninFile; i < positioninFile + BytesPerThread; i++){
+                    char c = inputfilevec[i];
                     string hold = EncodingHolder[c];
-                     OutputFile << hold; //add to the vector instead 
-                     }
+                   // if(myid == 1){
+                    // cout << myid << " "  << c  << " " << hold << endl;}
+                     VectorHolder[myid].push_back(hold);
+                    }
+                }
+                  //   }
+        }
+        for(int i=0; i <NoThreads; i++){
+            vector<string> holdervec =  VectorHolder[i];
+            if(!holdervec.empty()){
+            for(auto itr = holdervec.begin(); itr != holdervec.end(); itr++){ 
+                OutputFile << *itr;
+                }
+            }
         }
 
     OutputFile.close();
